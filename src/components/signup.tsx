@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const navigate = useNavigate();
 
-  const handleSignup = () => {
-    console.log('Login button clicked');
+  const handleSignup = async () => {
+    navigate('/home');
   };
 
   return (
@@ -48,6 +50,11 @@ function SignUp() {
           sx={{ mb: 2 }}
           required
         />
+        {/* {error && (
+          <Typography variant="body2" sx={{ color: 'red', mb: 2 }}>
+            {error}
+          </Typography>
+        )} */}
         <Button
           variant="contained"
           onClick={handleSignup}
