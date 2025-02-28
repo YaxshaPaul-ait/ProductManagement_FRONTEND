@@ -1,26 +1,50 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { getApiEndPoint } from '../config/api';
+
+interface LoginPageState {
+  email: string;
+  password: string;
+  error: string | null;
+}
 
 function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [state, setState] = useState<LoginPageState>({
+    email: '',
+    password: '',
+    error: null,
+  });
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
-      navigate('/home');
-    } catch (error: any) {
-      setError(error.message);
+      setState({ ...state });
+      const response = await axios.post(getApiEndPoint('/login'), {
+        email: state.email,
+        password: state.password,
+      });
+      if (response.status === 200) {
+        navigate('/home');
+      } else {
+        setState({ ...state, error: 'Invalid credentials' });
+      }
+    } catch (error) {
+      setState({ ...state, error: error.message });
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setState({ ...state, [name]: value });
   };
 
   return (
     <Box>
       <Box
         sx={{
-          display: 'flex',  
+          display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
@@ -29,25 +53,27 @@ function LoginPage() {
           backgroundColor: '#fff',
         }}
       >
-        <Typography variant="h4" sx={{ mb: 2 }}>
+        <Typography variant="h4" sx={{ mb: 2, color: 'black' }}>
           Login Page
         </Typography>
         <TextField
           label="Email_ID"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          name="email"
+          value={state.email}
+          onChange={handleInputChange}
           sx={{ mb: 2 }}
         />
         <TextField
           label="Password"
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          name="password"
+          value={state.password}
+          onChange={handleInputChange}
           sx={{ mb: 2 }}
         />
-        {error && (
+        {state.error && (
           <Typography color="error" sx={{ mb: 2 }}>
-            {error}
+            {state.error}
           </Typography>
         )}
         <Button

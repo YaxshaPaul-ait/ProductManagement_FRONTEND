@@ -1,13 +1,17 @@
-import { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button } from '@mui/material';
-import Login from './components/login';
-import Signup from './components/signup';
-import Home from './components/home';
-import AddProduct from './components/addProductModal';
+import { useState } from "react";
+import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import { AppBar, Toolbar, Typography, Button, TextField } from "@mui/material";
+import Login from "./components/login";
+import Signup from "./components/signup";
+import Home from "./components/home";
+import AddProduct from "./components/addProductModal";
 
 function App() {
   const [open, setOpen] = useState(false);
+  const handleClose = () => setOpen(false);
+  const [showAvailable, setShowAvailable] = useState(false);
+  const [date, setDate] = useState(""); 
+  const [name, setName] = useState("");
 
   return (
     <Router>
@@ -66,13 +70,37 @@ function App() {
                   <Button color="inherit" onClick={() => setOpen(true)}>
                     Add Product
                   </Button>
-                  <Button color="inherit" onClick={() => setOpen(true)}>
-                    Filter
+                  <Button
+                    color="inherit"
+                    onClick={() => setShowAvailable(true)}
+                  >
+                    Available
                   </Button>
-                  <AddProduct open={open} setOpen={setOpen} />
+                  <AddProduct
+                    open={open}
+                    setOpen={setOpen}
+                    handleClose={handleClose}
+                  />
+                  
+                  <TextField
+                    label="Date"
+                    placeholder="DD-MM-YYYY"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    sx={{ width: 200, marginRight: 2 }}
+                  />
+
+                  <TextField
+                    id="name"
+                    label="Name"
+                    variant="standard"
+                    sx={{ width: 200, marginRight: 2 }}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </Toolbar>
               </AppBar>
-              <Home />
+              <Home showAvailable={showAvailable} name={name} date={date} />
             </>
           }
         />

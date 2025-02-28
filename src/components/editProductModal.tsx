@@ -1,12 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Typography, Modal, TextField, Button } from '@mui/material';
+import { getApiEndPoint } from '../config/api';
 
-const EditProduct = ({ openEdit, setOpenEdit }) => {
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [isAvailable, setIsAvailable] = useState(true);
+interface EditProductProps {
+  openEdit: boolean;
+  setOpenEdit: (open: boolean) => void;
+  product: {
+    _id: string;
+    name: string;
+    price: number;
+    isAvailable: boolean;
+  } | null;
+}
 
-  const handleClose = () => setOpenEdit(false);
+const EditProduct = ({ openEdit, setOpenEdit, product }: EditProductProps) => {
+  const [name, setName] = useState<string>('');
+  const [price, setPrice] = useState<number>(0);
+  const [isAvailable, setIsAvailable] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (product) {
+      setName(product.name);
+      setPrice(product.price);
+      setIsAvailable(product.isAvailable);
+    }
+  }, [product]);
+
+  const handleClose = async () => {
+    if (product) {
+      try {
+        const response = await fetch(
+          getApiEndPoint(`/product/${product._id}`),
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, price, isAvailable }),
+          }
+        );
+        if (response.ok) {
+          setOpenEdit(false);
+        } else {
+          console.error('Failed to update product');
+        }
+      } catch (error) {
+        console.error('Error updating product:', error);
+      }
+    }
+  };
 
   return (
     <Modal open={openEdit} onClose={handleClose}>
@@ -26,7 +68,7 @@ const EditProduct = ({ openEdit, setOpenEdit }) => {
           p: 4,
         }}
       >
-        <Typography variant="h6" component="h2">
+        <Typography variant="h6" component="h2" sx={{ color: 'black' }}>
           Edit Product
         </Typography>
         <TextField
@@ -34,18 +76,22 @@ const EditProduct = ({ openEdit, setOpenEdit }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           sx={{ mb: 2 }}
+          fullWidth
         />
         <TextField
-          label="price"
+          label="Price"
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={(e) => setPrice(Number(e.target.value))}
+          type="number"
           sx={{ mb: 2 }}
+          fullWidth
         />
         <TextField
-          label="isAvailable"
-          value={isAvailable}
-          onChange={(e) => setIsAvailable(e.target.value)}
+          label="Is Available"
+          value={isAvailable ? 'Yes' : 'No'}
+          onChange={(e) => setIsAvailable(e.target.value === 'Yes')}
           sx={{ mb: 2 }}
+          fullWidth
         />
         <Button
           variant="contained"
@@ -53,9 +99,8 @@ const EditProduct = ({ openEdit, setOpenEdit }) => {
           sx={{
             backgroundColor: '#01615F',
           }}
-          s
         >
-          Edit Product
+          Save Changes
         </Button>
       </Box>
     </Modal>

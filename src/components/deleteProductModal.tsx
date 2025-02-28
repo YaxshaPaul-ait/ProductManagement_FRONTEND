@@ -1,6 +1,47 @@
 import { Box, Typography, Modal, Button } from '@mui/material';
+import { getApiEndPoint } from '../config/api';
 
-const DeleteModal = ({ openDelete, setOpenDelete }) => {
+interface DeleteModalProps {
+  openDelete: boolean;
+  setOpenDelete: (open: boolean) => void;
+  product: {
+    _id: string;
+    name: string;
+    price: number;
+    isAvailable: boolean;
+  } | null;
+}
+
+const DeleteModal = ({
+  openDelete,
+  setOpenDelete,
+  product,
+}: DeleteModalProps) => {
+  const handleDelete = async () => {
+    if (product) {
+      try {
+        const response = await fetch(
+          getApiEndPoint(`/product/${product._id}`),
+          {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        if (response.ok) {
+          setOpenDelete(false);
+        } else {
+          console.error('Failed to delete product');
+        }
+      } catch (error) {
+        console.error('Error deleting product:', error);
+      }
+    } else {
+      console.error('onDeleteSuccess is not a function or product is null');
+    }
+  };
+
   const handleClose = () => setOpenDelete(false);
 
   return (
@@ -21,28 +62,41 @@ const DeleteModal = ({ openDelete, setOpenDelete }) => {
           p: 4,
         }}
       >
-        <Typography variant="h6" component="h2">
+        <Typography variant="h6" component="h2" sx={{ color: 'black' }}>
           Delete Product
         </Typography>
+        <Typography component="h2" sx={{ color: 'black' }}>
+          Are You sure to delete {product?.name}?
+        </Typography>
 
-        <Button
-          variant="contained"
-          onClick={handleClose}
+        <Box
           sx={{
-            backgroundColor: '#01615F',
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            mt: 2,
+            gap: 2,
           }}
         >
-          Delete
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleClose}
-          sx={{
-            backgroundColor: '#01615F',
-          }}
-        >
-          Cancel
-        </Button>
+          <Button
+            variant="contained"
+            onClick={handleDelete}
+            sx={{
+              backgroundColor: '#01615F',
+            }}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleClose}
+            sx={{
+              backgroundColor: '#01615F',
+            }}
+          >
+            Cancel
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );

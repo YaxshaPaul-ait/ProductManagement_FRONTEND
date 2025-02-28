@@ -1,15 +1,45 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { getApiEndPoint } from '../config/api';
+
+interface SignUpPageState {
+  email: string;
+  password: string;
+  name: string;
+  error: string | null;
+}
 
 function SignUp() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [state, setState] = useState<SignUpPageState>({
+    email: '',
+    password: '',
+    name: '',
+    error: null,
+  });
   const navigate = useNavigate();
 
   const handleSignup = async () => {
-    navigate('/home');
+    try {
+      setState({ ...state, error: null});
+      const response = await axios.post(getApiEndPoint('/signup'), {
+        name: state.name,
+        email: state.email,
+        password: state.password,
+      });
+      if (response.status === 201) {
+        navigate('/home');
+      } else {
+        setState({ ...state, error: 'Invalid credentials'});
+      }
+    } catch (error: any) {
+      setState({ ...state, error: error.message});
+    }
+  };
+
+  const handleInputChange = (field: keyof SignUpPageState) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setState({ ...state, [field]: e.target.value });
   };
 
   return (
@@ -25,36 +55,36 @@ function SignUp() {
           backgroundColor: '#fff',
         }}
       >
-        <Typography variant="h4" sx={{ mb: 2 }}>
+        <Typography variant="h4" sx={{ mb: 2, color: 'black' }}>
           Create an Account
         </Typography>
         <TextField
           label="Username"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={state.name}
+          onChange={handleInputChange('name')}
           sx={{ mb: 2 }}
           required
         />
         <TextField
           label="Email_ID"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={state.email}
+          onChange={handleInputChange('email')}
           sx={{ mb: 2 }}
           required
         />
         <TextField
           label="Password"
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={state.password}
+          onChange={handleInputChange('password')}
           sx={{ mb: 2 }}
           required
         />
-        {/* {error && (
+        {state.error && (
           <Typography variant="body2" sx={{ color: 'red', mb: 2 }}>
-            {error}
+            {state.error}
           </Typography>
-        )} */}
+        )}
         <Button
           variant="contained"
           onClick={handleSignup}
