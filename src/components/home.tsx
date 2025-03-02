@@ -1,3 +1,5 @@
+import React from 'react';
+
 import {
   Box,
   Table,
@@ -12,7 +14,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useState, useEffect } from 'react';
 import EditModal from './editProductModal';
 import DeleteModal from './deleteProductModal';
-import { getApiEndPoint } from '../config/api';
+import { useDispatch } from "react-redux";
+  import { getProducts ,getProductByName,getProductStock,getProductByDate } from "../config/actions";
 
 interface Product {
   _id: string;
@@ -27,12 +30,10 @@ interface ProductProps {
   date: string;
 }
 
-interface ApiResponse {
-  message: string;
-  data: Product[];
-}
 
 function Home({ showAvailable, name, date }: ProductProps) {
+  const dispatch = useDispatch();
+
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -45,69 +46,62 @@ function Home({ showAvailable, name, date }: ProductProps) {
     setSelectedProduct(product);
   };
 
-  const handleAvailableClick = () => {
-    setShowAvailableProducts(true);
-    fetchAvailableProducts();
-  };
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(getApiEndPoint('/products'));
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await dispatch(getProducts() as any);
+  
+      if (!response.payload) {
+        throw new Error('No data received');
       }
-      const data: ApiResponse = await response.json();
-      setProducts(data.data || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
+  
+      setProducts(response.payload.data);
+    } catch (error: any) {
+      console.error('Error fetching products:', error.message || error);
     }
   };
 
   const fetchAvailableProducts = async () => {
     try {
-      const response = await fetch(
-        getApiEndPoint('/product_stock/?isAvailable=true')
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await dispatch(getProductStock() as any);
+      console.log(response);
+  
+      if (!response.payload) {
+        throw new Error('No data received');
       }
-      const data: ApiResponse = await response.json();
-      setAvailableProducts(
-        data.data?.filter((product) => product.isAvailable) || []
-      );
+  
+      setProducts(response.payload.data); 
     } catch (error) {
-      console.error('Error fetching available products:', error);
+      console.error('Error fetching products:', error);
     }
   };
+  
 
   const fetchProductsByName = async (name: string) => {
     try {
-      const response = await fetch(
-        getApiEndPoint(`/products_name/?name=${name}`)
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await dispatch(getProductByName(name) as any);
+      console.log(response);
+  
+      if (!response.payload) {
+        throw new Error('No data received');
       }
-      const data: ApiResponse = await response.json();
-      setAvailableProducts(data.data);
+  
+      setAvailableProducts(response.payload.data); 
     } catch (error) {
       console.error('Error fetching products by name:', error);
     }
   };
-
+  
+  
   const fetchProductsByDate = async (date: string) => {
     try {
-      if (!date) return;
-      console.log(date);
-
-      const response = await fetch(
-        getApiEndPoint(`/products_date/?date=${date}`)
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await dispatch(getProductByDate(date) as any);
+  
+      if (!response.payload) {
+        throw new Error('No data received');
       }
-      const data: ApiResponse = await response.json();
-      setAvailableProducts(data.data);
+  
+      setAvailableProducts(response.payload.data); 
     } catch (error) {
       console.error('Error fetching products by date:', error);
     }
@@ -115,8 +109,8 @@ function Home({ showAvailable, name, date }: ProductProps) {
 
   useEffect(() => {
     if (date) {
-      const formattedDate = date.split('-').reverse().join('-');
-      fetchProductsByDate(formattedDate);
+      setShowAvailableProducts(true);
+      fetchProductsByDate(date);
     }
   }, [date]);
 
@@ -126,13 +120,15 @@ function Home({ showAvailable, name, date }: ProductProps) {
 
   useEffect(() => {
     if (name) {
+      setShowAvailableProducts(true);
       fetchProductsByName(name);
     }
   }, [name]);
 
   useEffect(() => {
     if (showAvailable) {
-      handleAvailableClick();
+      setShowAvailableProducts(true);
+      fetchAvailableProducts();
     }
   }, [showAvailable]);
 
@@ -251,4 +247,3 @@ function Home({ showAvailable, name, date }: ProductProps) {
 }
 
 export default Home;
-

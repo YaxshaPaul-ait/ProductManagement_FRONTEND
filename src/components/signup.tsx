@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { getApiEndPoint } from '../config/api';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../config/store';
+import { signUp } from '../config/actions';
+import React from 'react';
 
 interface SignUpPageState {
   email: string;
   password: string;
   name: string;
-  error: string | null;
 }
 
 function SignUp() {
@@ -16,25 +17,21 @@ function SignUp() {
     email: '',
     password: '',
     name: '',
-    error: null,
   });
+
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { loading, error } = useSelector((state: RootState) => state.auth);
 
   const handleSignup = async () => {
     try {
-      setState({ ...state, error: null});
-      const response = await axios.post(getApiEndPoint('/signup'), {
-        name: state.name,
-        email: state.email,
-        password: state.password,
-      });
-      if (response.status === 201) {
+      const resultAction = await dispatch(signUp(state));
+
+      if (signUp.fulfilled.match(resultAction)) {
         navigate('/home');
-      } else {
-        setState({ ...state, error: 'Invalid credentials'});
       }
-    } catch (error: any) {
-      setState({ ...state, error: error.message});
+    } catch (err) {
+      console.error('Signup failed:', err);
     }
   };
 
@@ -80,17 +77,17 @@ function SignUp() {
           sx={{ mb: 2 }}
           required
         />
-        {state.error && (
+        {loading && <Typography>Signing up...</Typography>}
+        {error && (
           <Typography variant="body2" sx={{ color: 'red', mb: 2 }}>
-            {state.error}
+            {error}
           </Typography>
         )}
         <Button
           variant="contained"
           onClick={handleSignup}
-          sx={{
-            backgroundColor: '#01615F',
-          }}
+          sx={{ backgroundColor: '#01615F' }}
+          disabled={loading}
         >
           Create an account
         </Button>

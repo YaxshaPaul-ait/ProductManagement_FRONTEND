@@ -1,5 +1,8 @@
 import { Box, Typography, Modal, Button } from '@mui/material';
-import { getApiEndPoint } from '../config/api';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from "../config/store";
+import { deleteProduct } from "../config/actions";
+import React from 'react';
 
 interface DeleteModalProps {
   openDelete: boolean;
@@ -12,33 +15,21 @@ interface DeleteModalProps {
   } | null;
 }
 
-const DeleteModal = ({
-  openDelete,
-  setOpenDelete,
-  product,
-}: DeleteModalProps) => {
+const DeleteModal = ({ openDelete, setOpenDelete, product }: DeleteModalProps) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const {  error } = useSelector((state: RootState) => state.products);
+
   const handleDelete = async () => {
-    if (product) {
-      try {
-        const response = await fetch(
-          getApiEndPoint(`/product/${product._id}`),
-          {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-        if (response.ok) {
-          setOpenDelete(false);
-        } else {
-          console.error('Failed to delete product');
-        }
-      } catch (error) {
-        console.error('Error deleting product:', error);
-      }
-    } else {
-      console.error('onDeleteSuccess is not a function or product is null');
+    if (!product || !product._id) {
+      console.error("Product ID is missing");
+      return;
+    }
+
+    try {
+      await dispatch(deleteProduct(product._id)).unwrap();
+      setOpenDelete(false);
+    } catch (err) {
+      console.error("Failed to delete product:", err);
     }
   };
 
@@ -66,8 +57,14 @@ const DeleteModal = ({
           Delete Product
         </Typography>
         <Typography component="h2" sx={{ color: 'black' }}>
-          Are You sure to delete {product?.name}?
+          Are you sure you want to delete {product?.name}?
         </Typography>
+
+        {error && (
+          <Typography color="error" sx={{ mt: 1 }}>
+            {error}
+          </Typography>
+        )}
 
         <Box
           sx={{
@@ -81,18 +78,14 @@ const DeleteModal = ({
           <Button
             variant="contained"
             onClick={handleDelete}
-            sx={{
-              backgroundColor: '#01615F',
-            }}
+            sx={{ backgroundColor: '#01615F' }}
           >
-            Delete
+         Delete
           </Button>
           <Button
             variant="contained"
             onClick={handleClose}
-            sx={{
-              backgroundColor: '#01615F',
-            }}
+            sx={{ backgroundColor: '#01615F' }}
           >
             Cancel
           </Button>

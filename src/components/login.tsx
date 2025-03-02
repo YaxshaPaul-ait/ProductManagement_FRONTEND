@@ -1,37 +1,35 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { getApiEndPoint } from '../config/api';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../config/store';
+import { login } from '../config/actions';
+import React from 'react';
 
 interface LoginPageState {
   email: string;
   password: string;
-  error: string | null;
 }
 
 function LoginPage() {
   const [state, setState] = useState<LoginPageState>({
     email: '',
     password: '',
-    error: null,
   });
+
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { loading, error } = useSelector((state: RootState) => state.auth);
 
   const handleLogin = async () => {
     try {
-      setState({ ...state });
-      const response = await axios.post(getApiEndPoint('/login'), {
-        email: state.email,
-        password: state.password,
-      });
-      if (response.status === 200) {
+      const resultAction = await dispatch(login({ email: state.email, password: state.password }));
+
+      if (login.fulfilled.match(resultAction)) {
         navigate('/home');
-      } else {
-        setState({ ...state, error: 'Invalid credentials' });
       }
-    } catch (error) {
-      setState({ ...state, error: error.message });
+    } catch (err) {
+      console.error('Login failed:', err);
     }
   };
 
@@ -71,9 +69,10 @@ function LoginPage() {
           onChange={handleInputChange}
           sx={{ mb: 2 }}
         />
-        {state.error && (
+        {loading && <Typography>Logging in...</Typography>}
+        {error && (
           <Typography color="error" sx={{ mb: 2 }}>
-            {state.error}
+            {error}
           </Typography>
         )}
         <Button
@@ -82,6 +81,7 @@ function LoginPage() {
           sx={{
             backgroundColor: '#01615F',
           }}
+          disabled={loading}
         >
           Login
         </Button>

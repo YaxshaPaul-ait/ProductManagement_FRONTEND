@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Box, Typography, Modal, TextField, Button } from '@mui/material';
-import { getApiEndPoint } from '../config/api';
+import { updateProduct } from '../config/actions';
+import { RootState } from '../config/store';
+import React from 'react';
 
 interface EditProductProps {
   openEdit: boolean;
@@ -14,9 +17,11 @@ interface EditProductProps {
 }
 
 const EditProduct = ({ openEdit, setOpenEdit, product }: EditProductProps) => {
-  const [name, setName] = useState<string>('');
+  const dispatch = useDispatch();
+  const [name, setName] = useState('');
   const [price, setPrice] = useState<number>(0);
   const [isAvailable, setIsAvailable] = useState<boolean>(false);
+  const { loading, error } = useSelector((state: RootState) => state.products);
 
   useEffect(() => {
     if (product) {
@@ -26,32 +31,26 @@ const EditProduct = ({ openEdit, setOpenEdit, product }: EditProductProps) => {
     }
   }, [product]);
 
-  const handleClose = async () => {
-    if (product) {
-      try {
-        const response = await fetch(
-          getApiEndPoint(`/product/${product._id}`),
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name, price, isAvailable }),
-          }
-        );
-        if (response.ok) {
-          setOpenEdit(false);
-        } else {
-          console.error('Failed to update product');
-        }
-      } catch (error) {
-        console.error('Error updating product:', error);
-      }
-    }
+  const handleUpdate = async () => {
+    if (!product) return;
+
+    dispatch(updateProduct({ 
+      id: product._id, 
+      name, 
+      price, 
+      isAvailable 
+    })as any)
+    .unwrap()
+    .then(() => {
+      setOpenEdit(false);
+    })
+    .catch((err: string) => {
+      console.error('Update failed:', err);
+    });
   };
 
   return (
-    <Modal open={openEdit} onClose={handleClose}>
+    <Modal open={openEdit} onClose={() => setOpenEdit(false)}>
       <Box
         sx={{
           position: 'absolute',
@@ -71,6 +70,7 @@ const EditProduct = ({ openEdit, setOpenEdit, product }: EditProductProps) => {
         <Typography variant="h6" component="h2" sx={{ color: 'black' }}>
           Edit Product
         </Typography>
+        {error && <Typography color="error">{error}</Typography>}
         <TextField
           label="Name"
           value={name}
@@ -95,12 +95,11 @@ const EditProduct = ({ openEdit, setOpenEdit, product }: EditProductProps) => {
         />
         <Button
           variant="contained"
-          onClick={handleClose}
-          sx={{
-            backgroundColor: '#01615F',
-          }}
+          onClick={handleUpdate}
+          disabled={loading}
+          sx={{ backgroundColor: '#01615F' }}
         >
-          Save Changes
+          {loading ? 'Saving...' : 'Save Changes'}
         </Button>
       </Box>
     </Modal>
