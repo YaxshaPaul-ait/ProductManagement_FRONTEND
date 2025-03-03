@@ -8,7 +8,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  token: localStorage.getItem('token'), // Retrieve token from localStorage
+  token: localStorage.getItem('token'), 
   loading: false,
   error: null,
 };
@@ -19,7 +19,7 @@ const authSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.token = null;
-      localStorage.removeItem('token'); // Remove token on logout
+      localStorage.removeItem('token');
     },
   },
   extraReducers: (builder) => {
@@ -31,7 +31,7 @@ const authSlice = createSlice({
       .addCase(signUp.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload;
-        localStorage.setItem('token', action.payload); // Save token in localStorage
+        localStorage.setItem('token', action.payload); 
       })
       .addCase(signUp.rejected, (state, action) => {
         state.loading = false;
@@ -44,7 +44,7 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload;
-        localStorage.setItem('token', action.payload); // Save token in localStorage
+        localStorage.setItem('token', action.payload);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
