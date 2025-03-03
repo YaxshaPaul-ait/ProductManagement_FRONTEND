@@ -35,7 +35,7 @@ const AddProduct = ({ open, setOpen, handleClose }: AddProductProps) => {
     images: [],
   });
 
-  // Handle input changes
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setProduct((prev) => ({
@@ -44,7 +44,7 @@ const AddProduct = ({ open, setOpen, handleClose }: AddProductProps) => {
     }));
   };
 
-  // Handle image selection
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -60,7 +60,7 @@ const AddProduct = ({ open, setOpen, handleClose }: AddProductProps) => {
     }
   };
 
-  // Handle product submission
+ 
   const handleAddProduct = () => {
     if (!product.name || !product.price) {
       alert("Name and price are required");
