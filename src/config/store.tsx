@@ -5,7 +5,7 @@ import productReducer from './productslice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    products: productReducer, // Now products have a separate slice
+    products: productReducer,
   },
 });
 
